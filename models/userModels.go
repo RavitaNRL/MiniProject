@@ -1,12 +1,14 @@
 package models
 
+import "gorm.io/gorm"
+
 type User struct {
-	ID        int    `json:"id" gorm:"primary_key" form:"id"`
-	Nama      string `json:"nama" form:"nama"`
-	No_Telp   string `json:"no_telp" form:"no_telp"`
-	Alamat    string `json:"alamat" form:"alamat"`
+	gorm.Model
+	Name      string `json:"name" form:"name"`
 	Email     string `json:"email" form:"email"`
-	Password  string `json:"password" form:"password"`
+	Alamat    string `json:"alamat" form:"alamat"`
+	No_Hp     string `json:"no_hp" form:"no_hp"`
 	User_type string `json:"user_type" form:"user_type"`
+	Password  string `json:"password" form:"password"`
 	Token     string `json:"token" form:"token"`
 }

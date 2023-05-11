@@ -1,22 +1,16 @@
 package models
 
-import "time"
-
-type status string
-
-const (
-	PENDING string = "PENDING"
-	PROCESS string = "PROCESS"
-	FINISH  string = "FINISH"
-)
+import "gorm.io/gorm"
 
 type Order struct {
-	ID             int       `json:"id" gorm:"primary_key" form:"id"`
-	ID_user        int       `json:"id_user" form:"id_user" gorm:"autoIncrement"`
-	ID_baju        int       `json:"id_baju" form:"id_baju" gorm:"autoIncrement"`
-	Jumlah         int       `json:"jumlah" form:"jumlah"`
-	Tanggal_order  string    `json:"tanggal_order" form:"tanggal_order"`
-	Total_harga    int       `json:"total_harga" form:"total_harga"`
-	Status         status    `json:"status" form:"status" gorm:"type:enum('PENDING', 'PROCESS', 'FINISH')";"column:status"`
-	Estimasi_Waktu time.Time `json:"estimasi_waktu" form:"estimasi_waktu"`
+	gorm.Model
+	User           User   `json:"user"  gorm:"foreignKey:ID_user;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ID_user        int    `json:"id_user" form:"id_user"`
+	Baju           Baju   `json:"baju" gorm:"foreignKey:ID_baju;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ID_baju        int    `json:"id_baju" form:"id_baju"`
+	Jumlah         int    `json:"jumlah" form:"jumlah"`
+	Total_harga    int    `json:"total_harga" form:"total_harga"`
+	Status         string `json:"status_pesanan" form:"status_pesanan"`
+	Tanggal_order  string `json:"tanggal_order" form:"tanggal_order"`
+	Estimasi_Waktu string `json:"estimasi_waktu" form:"estimasi_waktu"`
 }
