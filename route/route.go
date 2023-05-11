@@ -1,37 +1,45 @@
 package route
 
 import (
-	"MiniProject/constants"
-	"MiniProject/controller"
-	"MiniProject/middleware"
+	"Project-Mini/constants"
+	"Project-Mini/controller"
+	"Project-Mini/middleware"
 
 	"github.com/labstack/echo"
 	mid "github.com/labstack/echo/middleware"
 )
 
 func New() *echo.Echo {
-	// Echo instance
+
 	e := echo.New()
 
 	// Middleware
 	middleware.LogMiddleware(e)
 	e.Pre(mid.RemoveTrailingSlash())
 
-	// User Controllers
+	// User Controllers = dapat digunakan untuk semua user
 	user := e.Group("/user")
-	user.POST("", controller.CreateUser)
+	user.POST("/register", controller.CreateUserController)
 	user.POST("/login", controller.LoginUsers)
-	user.GET("", controller.GetAllUser, mid.JWT([]byte(constants.SCREAT_JWT)))
-	user.GET("/:id", controller.GetUserByID, mid.JWT([]byte(constants.SCREAT_JWT)))
-	user.PUT("/:id", controller.UpdateUser, mid.JWT([]byte(constants.SCREAT_JWT)))
-	user.DELETE("/:id", controller.DeleteUser, mid.JWT([]byte(constants.SCREAT_JWT)))
+	user.GET("", controller.GetAllUserController, mid.JWT([]byte(constants.SCREAT_JWT)))
+	user.GET("/:id", controller.GetUserByIDController, mid.JWT([]byte(constants.SCREAT_JWT)))
+	user.PUT("/:id", controller.UpdateUserById, mid.JWT([]byte(constants.SCREAT_JWT)))
+	user.DELETE("/:id", controller.DeleteUserController, mid.JWT([]byte(constants.SCREAT_JWT)))
 
-	// Baju Controllers
+	// Baju Controllers = dapat digunakan untuk admin dan buyer
 	baju := e.Group("/baju")
-	baju.POST("", controller.CreateBaju, mid.JWT([]byte(constants.SCREAT_JWT)))
-	baju.GET("", controller.GetAllBaju, mid.JWT([]byte(constants.SCREAT_JWT)))
+	baju.POST("/buyer", controller.CreateOrderBaju, mid.JWT([]byte(constants.SCREAT_JWT)))
+	baju.GET("/admin", controller.GetAllBajuController, mid.JWT([]byte(constants.SCREAT_JWT)))
 	baju.GET("/:id", controller.GetBajuByID, mid.JWT([]byte(constants.SCREAT_JWT)))
-	baju.PUT("/:id", controller.UpdateBaju, mid.JWT([]byte(constants.SCREAT_JWT)))
+	baju.PUT("/:id", controller.UpdateBajuById, mid.JWT([]byte(constants.SCREAT_JWT)))
+
+	// Order Controllers = dapat digunakan untuk admin dan buyer
+	order := e.Group("/order")
+	order.POST("", controller.CreateOrderController)
+	order.GET("", controller.GetAllOrder)
+	order.GET("/:id", controller.GetOrderByIdController)
+	order.PUT("/:id", controller.UpdateOrder)
+	order.DELETE("/:id", controller.DeleteOrder)
 
 	return e
 }
