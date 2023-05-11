@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"MiniProject/config"
-	"MiniProject/models"
+	"Project-Mini/middleware"
+	"Project-Mini/models"
+	"Project-Mini/repository/database"
 	"net/http"
 	"strconv"
 
@@ -10,13 +11,16 @@ import (
 )
 
 //create user
-func CreateUser(c echo.Context) error {
+func CreateUserController(c echo.Context) error {
 	user := models.User{}
 	c.Bind(&user)
 
-	if err := config.DB.Save(&user).Error; err != nil {
+	user, err := database.CreateUser(user)
+
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success create user",
 		"user":    user,
@@ -24,12 +28,13 @@ func CreateUser(c echo.Context) error {
 }
 
 //get all user
-func GetAllUser(c echo.Context) error {
-	var user []models.User
+func GetAllUserController(c echo.Context) error {
+	user, err := database.GetAllUser()
 
-	if err := config.DB.Find(&user).Error; err != nil {
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success get all user",
 		"user":    user,
@@ -37,12 +42,12 @@ func GetAllUser(c echo.Context) error {
 }
 
 //get user by id
-func GetUserByID(c echo.Context) error {
+func GetUserByIDController(c echo.Context) error {
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	user := models.User{}
-	if err := config.DB.Where("id = ?", id).First(&user).Error; err != nil {
+	user, err := database.GetUserById(id)
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -51,18 +56,16 @@ func GetUserByID(c echo.Context) error {
 	})
 }
 
-//update user
-func UpdateUser(c echo.Context) error {
+// update user
+func UpdateUserById(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 
 	user := models.User{}
-	if err := config.DB.First(&user, id).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
 	c.Bind(&user)
 
-	if err := config.DB.Save(&user).Error; err != nil {
+	user, err := database.UpdateUser(user, id)
+
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
@@ -72,18 +75,15 @@ func UpdateUser(c echo.Context) error {
 	})
 }
 
-//delete user
-func DeleteUser(c echo.Context) error {
+//delete user by id (admin)
+func DeleteUserController(c echo.Context) error {
 	// your solution here
 
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	user := models.User{}
-	if err := config.DB.First(&user, id).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
+	err := database.DeleteUserById(id)
 
-	if err := config.DB.Delete(&user).Error; err != nil {
+	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
@@ -93,31 +93,33 @@ func DeleteUser(c echo.Context) error {
 
 }
 
-// // login user
-// func LoginUsersController(c echo.Context) error {
-// 	user := models.User{}
-// 	c.Bind(&user)
+// login user
+func LoginUsers(c echo.Context) error {
+	user := models.User{}
+	c.Bind(&user)
 
-// 	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-// 			"message": "Fail login user",
-// 			"status":  err.Error(),
-// 		})
-// 	}
+	user, err := database.LoginUser(user)
 
-// 	token, err := middleware.CreateToken(int(user.ID), user.Name)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Fail login user",
+			"status":  err.Error(),
+		})
+	}
 
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-// 			"message": "Fail create JWT TOken",
-// 			"status":  err.Error(),
-// 		})
-// 	}
+	token, err := middleware.CreateToken(int(user.ID), user.Name)
 
-// 	user.Token = token
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "Fail create JWT TOken",
+			"status":  err.Error(),
+		})
+	}
 
-// 	return c.JSON(http.StatusOK, map[string]interface{}{
-// 		"status": "success login",
-// 		"user":   user,
-// 	})
-// }
+	user.Token = token
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "success login",
+		"user":   user,
+	})
+}
